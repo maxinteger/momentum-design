@@ -460,8 +460,10 @@ class MenuPopover extends Popover {
         break;
       }
       case KEYS.ESCAPE: {
-        this.resetTabIndexAndSetFocus(0, currentIndex);
-        isKeyHandled = true;
+        if (this.depthManager.isHostOnTop()) {
+          this.resetTabIndexAndSetFocus(0, currentIndex);
+          isKeyHandled = true;
+        }
         break;
       }
       case KEYS.ENTER: {

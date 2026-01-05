@@ -301,10 +301,12 @@ export const FocusTrapMixin = <T extends Constructor<Component>>(superClass: T) 
       }
 
       let children: HTMLElement[] = [];
-      if (root.children.length) {
-        children = Array.from(root.children) as HTMLElement[];
-      } else if (root instanceof HTMLElement && root.shadowRoot) {
+
+      if (root instanceof HTMLElement && root.shadowRoot) {
+        // Children of the root element will be picked up from the slots in the shadow DOM, in the correct order
         children = Array.from(root.shadowRoot.children) as HTMLElement[];
+      } else if (root.children.length) {
+        children = Array.from(root.children) as HTMLElement[];
       }
 
       children.forEach((child: Node) => {
