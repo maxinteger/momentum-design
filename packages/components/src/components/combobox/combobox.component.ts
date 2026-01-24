@@ -23,6 +23,7 @@ import { DEFAULTS as POPOVER_DEFAULTS, POPOVER_PLACEMENT, TRIGGER } from '../pop
 import type { PopoverStrategy } from '../popover/popover.types';
 import { TAG_NAME as SELECTLISTBOX_TAG_NAME } from '../selectlistbox/selectlistbox.constants';
 import { KeyToActionMixin, ACTIONS } from '../../utils/mixins/KeyToActionMixin';
+import { KeyDownHandledMixin } from '../../utils/mixins/KeyDownHandledMixin';
 
 import { AUTOCOMPLETE_LIST, ICON_NAME, TRIGGER_ID } from './combobox.constants';
 import { ComboboxEventManager } from './combobox.events';
@@ -104,8 +105,12 @@ import type { Placement } from './combobox.types';
  * @csspart combobox__button-icon - The icon element of the button of the combobox.
  */
 class Combobox
-  extends KeyToActionMixin(
-    CaptureDestroyEventForChildElement(AutoFocusOnMountMixin(FormInternalsMixin(DataAriaLabelMixin(FormfieldWrapper)))),
+  extends KeyDownHandledMixin(
+    KeyToActionMixin(
+      CaptureDestroyEventForChildElement(
+        AutoFocusOnMountMixin(FormInternalsMixin(DataAriaLabelMixin(FormfieldWrapper))),
+      ),
+    ),
   )
   implements AssociatedFormControl
 {
@@ -529,6 +534,7 @@ class Combobox
         const newIndex = options.length - 1 === activeIndex ? 0 : activeIndex + 1;
         this.updateFocusAndScrollIntoView(options, activeIndex, newIndex);
         event.preventDefault();
+        this.keyDownEventHandled();
         break;
       }
       case ACTIONS.UP: {
@@ -536,6 +542,7 @@ class Combobox
         const newIndex = activeIndex === -1 || activeIndex === 0 ? options.length - 1 : activeIndex - 1;
         this.updateFocusAndScrollIntoView(options, activeIndex, newIndex);
         event.preventDefault();
+        this.keyDownEventHandled();
         break;
       }
       case ACTIONS.ENTER: {
@@ -544,6 +551,7 @@ class Combobox
         if (this.isOpen) {
           this.closePopover();
         }
+        this.keyDownEventHandled();
         break;
       }
       case ACTIONS.ESCAPE: {
@@ -555,15 +563,18 @@ class Combobox
           // clear the visible value
           this.filteredValue = '';
         }
+        this.keyDownEventHandled();
         break;
       }
       case ACTIONS.TAB: {
         this.closePopover();
+        this.keyDownEventHandled();
         break;
       }
       case ACTIONS.HOME:
       case ACTIONS.END: {
         this.resetFocusedOption();
+        this.keyDownEventHandled();
         break;
       }
       default:
