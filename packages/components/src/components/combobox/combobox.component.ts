@@ -22,7 +22,7 @@ import { TAG_NAME as OPTION_TAG_NAME } from '../option/option.constants';
 import { DEFAULTS as POPOVER_DEFAULTS, POPOVER_PLACEMENT, TRIGGER } from '../popover/popover.constants';
 import type { PopoverStrategy } from '../popover/popover.types';
 import { TAG_NAME as SELECTLISTBOX_TAG_NAME } from '../selectlistbox/selectlistbox.constants';
-import { KeyToActionMixin, ACTIONS } from '../../utils/mixins/KeyToActionMixin';
+import { KeyToActionMixin, ACTIONS, NAV_MODES } from '../../utils/mixins/KeyToActionMixin';
 import { KeyDownHandledMixin } from '../../utils/mixins/KeyDownHandledMixin';
 
 import { AUTOCOMPLETE_LIST, ICON_NAME, TRIGGER_ID } from './combobox.constants';
@@ -528,9 +528,14 @@ class Combobox
   private handleInputKeydown(event: KeyboardEvent): void {
     const options = this.getVisibleOptions(this.filteredValue);
     const activeIndex = options.findIndex(option => option.hasAttribute('data-focused'));
+    const isSpatialNavigation = this.getKeyboardNavMode() === NAV_MODES.SPATIAL;
     switch (this.getActionForKeyEvent(event)) {
       case ACTIONS.DOWN: {
-        this.openPopover();
+        if (!isSpatialNavigation) {
+          this.openPopover();
+        } else if (!this.isOpen) {
+          break;
+        }
         const newIndex = options.length - 1 === activeIndex ? 0 : activeIndex + 1;
         this.updateFocusAndScrollIntoView(options, activeIndex, newIndex);
         event.preventDefault();
@@ -538,7 +543,11 @@ class Combobox
         break;
       }
       case ACTIONS.UP: {
-        this.openPopover();
+        if (!isSpatialNavigation) {
+          this.openPopover();
+        } else if (!this.isOpen) {
+          break;
+        }
         const newIndex = activeIndex === -1 || activeIndex === 0 ? options.length - 1 : activeIndex - 1;
         this.updateFocusAndScrollIntoView(options, activeIndex, newIndex);
         event.preventDefault();
@@ -546,10 +555,14 @@ class Combobox
         break;
       }
       case ACTIONS.ENTER: {
-        if (activeIndex === -1) return;
-        this.setSelectedValue(options[activeIndex]);
-        if (this.isOpen) {
-          this.closePopover();
+        if (isSpatialNavigation && !this.isOpen) {
+          this.openPopover();
+        } else {
+          if (activeIndex === -1) return;
+          this.setSelectedValue(options[activeIndex]);
+          if (this.isOpen) {
+            this.closePopover();
+          }
         }
         this.keyDownEventHandled();
         break;
